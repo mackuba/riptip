@@ -1,10 +1,6 @@
  /*
- * TipTip
- * Copyright 2010 Drew Wilson
- * www.drewwilson.com
- * code.drewwilson.com/entry/tiptip-jquery-plugin
- *
- * Version 1.2   -   Updated: Jan. 13, 2010
+ * TipTip - Copyright 2010 Drew Wilson (www.drewwilson.com, code.drewwilson.com/entry/tiptip-jquery-plugin)
+ * RipTip (RightJS port) - Copyright 2010 Jakub Suder (psionides.jogger.pl)
  *
  * This Plug-In will create a custom tooltip to replace the default
  * browser tooltip. It is extremely lightweight and very smart in
@@ -14,105 +10,140 @@
  * or to the right depending on what is necessary to stay within the
  * browser window. It is completely customizable as well via CSS.
  *
- * This TipTip jQuery plug-in is dual licensed under the MIT and GPL licenses:
+ * This plug-in is dual licensed under the MIT and GPL licenses:
  *   http://www.opensource.org/licenses/mit-license.php
  *   http://www.gnu.org/licenses/gpl.html
  */
 
-(function($){
-	$.fn.tipTip = function(options) {
-		var defaults = { 
-			maxWidth: "200px",
-			edgeOffset: 3,
-			delay: 400,
-			fadeIn: 200,
-			fadeOut: 200,
-		  	enter: function(){},
-		  	exit: function(){}
-	  	};
-	 	var opts = $.extend(defaults, options);
-	 	
-	 	// Setup tip tip elements and render them to the DOM
-	 	if($("#tiptip_holder").length <= 0){
-	 		var tiptip_holder = $('<div id="tiptip_holder" style="max-width:'+ opts.maxWidth +';"></div>');
-			var tiptip_content = $('<div id="tiptip_content"></div>');
-			var tiptip_arrow = $('<div id="tiptip_arrow"></div>');
-			$("body").append(tiptip_holder.html(tiptip_content).prepend(tiptip_arrow.html('<div id="tiptip_arrow_inner"></div>')));
-		} else {
-			var tiptip_holder = $("#tiptip_holder");
-			var tiptip_content = $("#tiptip_content");
-			var tiptip_arrow = $("#tiptip_arrow");
-		}
-		
-		return this.each(function(){
-			var org_elem = $(this);
-			var org_title = org_elem.attr("title");
-			if(org_title != ""){
-				org_elem.removeAttr("title"); //remove original Title attribute
-				var timeout = false;
-				org_elem.hover(function(){
-					opts.enter.call(this);
-					tiptip_content.html(org_title);
-					tiptip_holder.hide().removeAttr("class").css("margin","0");
-					tiptip_arrow.removeAttr("style");
-					
-					var top = parseInt(org_elem.offset()['top']);
-					var left = parseInt(org_elem.offset()['left']);
-					var org_width = parseInt(org_elem.outerWidth());
-					var org_height = parseInt(org_elem.outerHeight());
-					var tip_w = tiptip_holder.outerWidth();
-					var tip_h = tiptip_holder.outerHeight();
-					var w_compare = Math.round((org_width - tip_w) / 2);
-					var h_compare = Math.round((org_height - tip_h) / 2);
-					var marg_left = Math.round(left + w_compare);
-					var marg_top = Math.round(top + org_height + opts.edgeOffset);
-					var t_class = "";
-					var arrow_top = "";
-					var arrow_left = Math.round(tip_w - 12) / 2;
-					
-					if(w_compare < 0){
-						if((w_compare + left) < parseInt($(window).scrollLeft())){
-							t_class = "_right";
-							arrow_top = Math.round(tip_h - 13) / 2;
-							arrow_left = -12;
-							marg_left = Math.round(left + org_width + opts.edgeOffset);
-							marg_top = Math.round(top + h_compare);
-						} else if((tip_w + left) > parseInt($(window).width())){
-							t_class = "_left";
-							arrow_top = Math.round(tip_h - 13) / 2;
-							arrow_left =  Math.round(tip_w);
-							marg_left = Math.round(left - (tip_w + opts.edgeOffset + 5));
-							marg_top = Math.round(top + h_compare);
-						}
-					}
-					if((top + org_height + opts.edgeOffset + tip_h + 8) > parseInt($(window).height() + $(window).scrollTop())){
-						t_class = t_class+"_top";
-						arrow_top = tip_h;
-						marg_top = Math.round(top - (tip_h + 5 + opts.edgeOffset));
-					} else if(((top + org_height) - (opts.edgeOffset + tip_h)) < 0 || t_class == ""){
-						t_class = t_class+"_bottom";
-						arrow_top = -12;						
-						marg_top = Math.round(top + org_height + opts.edgeOffset);
-					}
-					if(t_class == "_right_top" || t_class == "_left_top"){
-						marg_top = marg_top + 5;
-					} else if(t_class == "_right_bottom" || t_class == "_left_bottom"){		
-						marg_top = marg_top - 5;
-					}
-					if(t_class == "_left_top" || t_class == "_left_bottom"){	
-						marg_left = marg_left + 5;
-					}
-					tiptip_arrow.css({"margin-left": arrow_left+"px", "margin-top": arrow_top+"px"});
-					tiptip_holder.css({"margin-left": marg_left+"px", "margin-top": marg_top+"px"}).attr("class","tip"+t_class);
-					
-					if (timeout){ clearTimeout(timeout); }
-					timeout = setTimeout(function(){ tiptip_holder.stop(true,true).fadeIn(opts.fadeIn); }, opts.delay);			
-				}, function(){
-					opts.exit.call(this);
-					if (timeout){ clearTimeout(timeout); }
-					tiptip_holder.fadeOut(opts.fadeOut);
-				});
-			}				
-		});
-	}
-})(jQuery);  	
+RipTip = {
+
+  defaults: {
+    maxWidth: "200px",
+    edgeOffset: 3,
+    delay: 400,
+    fadeIn: 200,
+    fadeOut: 200
+  },
+
+  attachTo: function(element, opts) {
+    var options = Object.merge(this.defaults, opts);
+    this._initialize();
+    var title = element.get("title");
+    if (title) {
+      element.erase("title");
+      element.on({
+        mouseover: this._enter.bind(this, element, title, options),
+        mouseout: this._leave.bind(this, element, options)
+      });
+    }
+  },
+
+  _initialize: function() {
+    if (!this._initialized) {
+      this._holder = this._createDiv('riptip_holder', $$('body').first());
+
+      this._arrow = this._createDiv('riptip_arrow', this._holder);
+      this._content = this._createDiv('riptip_content', this._holder);
+      this._createDiv('riptip_arrow_inner', this._arrow);
+
+      this._timeout = null;
+      this._initialized = true;
+    }
+  },
+
+  _createDiv: function(id, where) {
+    return $(id) || new Element('div', { id: id }).insertTo(where);
+  },
+
+  _enter: function(element, title, options) {
+    element.fire('riptipEnter');
+    this._content.update(title);
+    this._holder.erase("class").setStyle({
+      margin: "0px",
+      display: 'block',
+      opacity: 0,
+      'max-width': options.maxWidth
+    });
+    this._arrow.erase("style");
+
+    var top = element.position().y;
+    var left = element.position().x;
+    var width = element.sizes().x;
+    var height = element.sizes().y;
+    var tipW = this._holder.sizes().x;
+    var tipH = this._holder.sizes().y;
+    var wCompare = Math.round((width - tipW) / 2);
+    var hCompare = Math.round((height - tipH) / 2);
+    var marginLeft = Math.round(left + wCompare);
+    var marginTop = Math.round(top + height + options.edgeOffset);
+    var tClass = "";
+    var arrowTop = "";
+    var arrowLeft = Math.round(tipW - 12) / 2;
+
+    if (wCompare < 0) { // element's width is smaller than tip's
+      if ((wCompare + left) < window.scrolls().x) {
+        tClass = "_right";
+        arrowTop = Math.round(tipH - 13) / 2;
+        arrowLeft = -12;
+        marginLeft = Math.round(left + width + options.edgeOffset);
+        marginTop = Math.round(top + hCompare);
+      } else if ((tipW + left) > window.sizes().x) {
+        tClass = "_left";
+        arrowTop = Math.round(tipH - 13) / 2;
+        arrowLeft = Math.round(tipW);
+        marginLeft = Math.round(left - (tipW + options.edgeOffset + 5));
+        marginTop = Math.round(top + hCompare);
+      }
+    }
+
+    if ((top + height + options.edgeOffset + tipH + 8) > window.sizes().y + window.scrolls().y) {
+      tClass = tClass + "_top";
+      arrowTop = tipH;
+      marginTop = Math.round(top - (tipH + 5 + options.edgeOffset));
+    } else if (((top + height) - (options.edgeOffset + tipH)) < 0 || tClass == "") {
+      tClass = tClass + "_bottom";
+      arrowTop = -12;
+      marginTop = Math.round(top + height + options.edgeOffset);
+    }
+
+    if (tClass == "_right_top" || tClass == "_left_top") {
+      marginTop = marginTop + 5;
+    } else if (tClass == "_right_bottom" || tClass == "_left_bottom") {
+      marginTop = marginTop - 5;
+    }
+
+    if (tClass == "_left_top" || tClass == "_left_bottom") {
+      marginLeft = marginLeft + 5;
+    }
+
+    this._arrow.setStyle({ "margin-left": arrowLeft + "px", "margin-top": arrowTop + "px" });
+    this._holder.setStyle({ "margin-left": marginLeft + "px", "margin-top": marginTop + "px" });
+    this._holder.setClass("tip" + tClass);
+
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+    }
+
+    this._timeout = setTimeout(this._show.bind(this, options), options.delay);
+  },
+
+  _show: function(options) {
+    this._holder.fade('in', { duration: options.fadeIn });
+  },
+
+  _leave: function(element, options) {
+    element.fire('riptipLeave');
+    if (this._timeout) {
+      clearTimeout(this._timeout);
+    }
+    this._holder.fade('out', { duration: options.fadeOut });
+  }
+
+};
+
+Element.include({
+  riptip: function(options) {
+    RipTip.attachTo(this, options);
+    return this;
+  }
+});
