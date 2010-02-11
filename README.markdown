@@ -27,24 +27,27 @@ or using a shortcut method added to Element:
 RipTip will remove the `title` attribute from given elements and will display the contents of that attribute in a
 custom tooltip.
 
-Elements which have tooltips attached to them fire two custom events: "`riptipEnter`" when you mouseover an element,
-before the animation starts, and "`riptipLeave`" when the cursor leaves the element and before the fade-out animation
+Elements which have tooltips attached to them fire two custom events: `riptipEnter` when you mouseover an element,
+before the animation starts, and `riptipLeave` when the cursor leaves the element and before the fade-out animation
 starts; you can bind actions to these events like this:
 
     $('link').riptip().on({
       'riptipEnter': function() { ... },
       'riptipLeave': function() { ... }
     });
+    
+    // or:
+    $('link').riptip().on('riptipEnter', function() { ... });
 
 ## Options
 
 You can pass any of these in the options attribute:
 
-* maxWidth (default: "200px") - tooltip's maximum width
-* edgeOffset (default: 3) - distance between the element's border and the top of the tooltip's arrow (in px)
-* delay (default: 400) - amount of time before tooltip appears (in ms)
-* fadeIn (default: 200) - length of the fade in animation (in ms)
-* fadeOut (default: 200) - length of the fade out animation (in ms)
+* `maxWidth` (default: "200px") - tooltip's maximum width
+* `edgeOffset` (default: 3) - distance between the element's border and the top of the tooltip's arrow (in px)
+* `delay` (default: 400) - amount of time before tooltip appears (in ms)
+* `fadeIn` (default: 200) - length of the fade in animation (in ms)
+* `fadeOut` (default: 200) - length of the fade out animation (in ms)
 
 Of course you can also tweak the CSS to change the way the tooltips look.
 
@@ -52,5 +55,5 @@ Of course you can also tweak the CSS to change the way the tooltips look.
 ## License
 
 Copyright by Jakub Suder (Psionides) <jakub.suder at gmail.com>. Original jQuery plugin (TipTip) - copyright by Drew
-Wilson [www.drewwilson.com](www.drewwilson.com). RipTip, like its jQuery ancestor, is dual-licensed under MIT and GPL
+Wilson [www.drewwilson.com](http://www.drewwilson.com). RipTip, like its jQuery ancestor, is dual-licensed under MIT and GPL
 licenses.
