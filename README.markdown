@@ -2,7 +2,7 @@
 
 RipTip is a RightJS plugin that adds pretty tooltips to selected elements. It's a port of a jQuery plugin [TipTip](http://code.drewwilson.com/entry/tiptip-jquery-plugin) written by Drew Wilson.
 
-![RipTip screenshot](http://dl.dropbox.com/u/41808/blog/riptip.png)
+![RipTip screenshot](http://psionides.eu/images/posts/riptip.png)
 
 To see the tooltips in action, see [original TipTip blog post](http://code.drewwilson.com/entry/tiptip-jquery-plugin)
 (RipTip tooltips look exactly the same, or at least they're supposed to).
